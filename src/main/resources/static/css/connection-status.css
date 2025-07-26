@@ -1,0 +1,45 @@
+/* Connection Status Styles */
+#connection-status {
+    transition: background-color 0.3s ease;
+}
+
+#status-icon {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+}
+
+#reload-btn {
+    min-width: 80px;
+}
+
+/* Server Selection Styles */
+#server-selector {
+    margin-bottom: 1.5rem;
+}
+
+#server-select {
+    width: 100%;
+    max-width: 100%;
+}
+
+#connect-btn {
+    min-width: 120px;
+}
+
+#add-server-btn {
+    white-space: nowrap;
+}
+
+/* Status colors */
+.alert-success #status-icon {
+    color: #198754;
+}
+
+.alert-danger #status-icon {
+    color: #dc3545;
+}
+
+.alert-info #status-icon {
+    color: #0dcaf0;
+}

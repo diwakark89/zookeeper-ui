@@ -1,0 +1,29 @@
+server:
+  port: 8085
+
+zookeeper:
+  # Default server to connect to on startup
+  server: "192.168.1.238:2181,192.168.1.238:2182,192.168.1.238:2183"
+  # List of available servers
+  servers:
+    - name: "FAT Environment"
+      address: "192.168.1.64:2181,192.168.1.64:2182,192.168.1.64:2183"
+    - name: "My Local Machine"
+      address: "192.168.1.238:2181"
+    - name: "Dev Test Server"
+      address: "192.168.1.236:2181,192.168.1.236:2182,192.168.1.236:2183"
+  root-config: "/ccs-root-config"
+
+spring:
+  web:
+    resources:
+      add-mappings: true
+      static-locations: classpath:/static/
+  mvc:
+    static-path-pattern: /**
+
+  # CORS Configuration
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB

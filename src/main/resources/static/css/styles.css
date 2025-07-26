@@ -1,0 +1,110 @@
+body {
+    padding: 20px;
+    background-color: #f8f9fa;
+}
+
+.card {
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    border: none;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.card-header {
+    font-weight: 600;
+    padding: 12px 16px;
+}
+
+.config-item {
+    border-bottom: 1px solid #eee;
+    padding: 12px 16px;
+    transition: background-color 0.2s;
+}
+
+.config-item:hover {
+    background-color: #f8f9fa;
+}
+
+.config-item:last-child {
+    border-bottom: none;
+}
+
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 120px;
+}
+
+.btn-action {
+    margin-left: 5px;
+    transition: all 0.2s;
+}
+
+.list-group-item {
+    transition: all 0.2s;
+}
+
+.list-group-item:hover {
+    background-color: #f1f8ff;
+}
+
+.list-group-item.active {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.toast {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.modal-content {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+    border-bottom: 1px solid #eee;
+    padding: 16px 20px;
+}
+
+.modal-footer {
+    border-top: 1px solid #eee;
+    padding: 16px 20px;
+}
+
+/* Styles for resizable textarea */
+textarea.form-control {
+    min-height: 120px;
+    max-height: 300px;
+    resize: vertical; /* Only allow vertical resizing */
+    width: 100% !important; /* Ensure textarea doesn't resize horizontally beyond container */
+    overflow: auto;
+}
+
+/* Styles for config values in the list */
+.config-value {
+    word-break: break-word;
+    white-space: pre-wrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-height: 100px;
+}
+
+/* Increase modal size for larger content */
+.modal-dialog {
+    max-width: 700px;
+}
+
+/* Ensure modal body can handle large content */
+.modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+/* Ensure form controls stay within modal */
+.form-control {
+    max-width: 100%;
+}
