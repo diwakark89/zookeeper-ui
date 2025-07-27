@@ -15,11 +15,12 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
+import com.zookeeper.config.ZookeeperConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @RestController
-@CrossOrigin(origins = "*", allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS})
+@CrossOrigin(origins = "*", allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS}, allowCredentials = "false")
 public class ConfigController {
     private static final Logger log = LoggerFactory.getLogger(ConfigController.class);
     private final ConfigReaderService configReaderService;
@@ -27,11 +28,12 @@ public class ConfigController {
     @Value("${zookeeper.server}")
     private String currentServer;
 
-    @Value("${zookeeper.servers}")
+    // Removed the direct @Value injection for servers list
     private List<Map<String, String>> serverList;
 
-    public ConfigController(ConfigReaderService configReaderService) {
+    public ConfigController(ConfigReaderService configReaderService, ZookeeperConfig zookeeperConfig) {
         this.configReaderService = configReaderService;
+        this.serverList = zookeeperConfig.getServers();
     }
 
     @GetMapping("/config")
@@ -71,6 +73,18 @@ public class ConfigController {
             configReaderService.deleteFromZookeeper(parent,key);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
+            return ResponseEntity.status(500).build();
+        }
+    }
+
+    @DeleteMapping("/config/root/{nodeName}")
+    public ResponseEntity<Void> deleteRootNode(@PathVariable String nodeName) {
+        try {
+            log.info("Deleting root node: {}", nodeName);
+            configReaderService.deleteRootNode(nodeName);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            log.error("Error deleting root node {}: {}", nodeName, e.getMessage(), e);
             return ResponseEntity.status(500).build();
         }
     }

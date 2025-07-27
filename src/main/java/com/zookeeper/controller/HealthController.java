@@ -25,7 +25,7 @@ public class HealthController {
         Map<String, Object> status = new HashMap<>();
         boolean connected = configReaderService.isConnected();
 
-        status.put("service", "ZooKeeper Configuration Manager");
+        status.put("service", "ZooKeeper Dashboard");
         status.put("status", connected ? "connected" : "disconnected");
         status.put("server", configReaderService.getCurrentServer());
 

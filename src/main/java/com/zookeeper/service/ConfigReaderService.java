@@ -130,6 +130,25 @@ public class ConfigReaderService {
     }
 
     /**
+     * Deletes a root node and all its children
+     * 
+     * @param nodeName The name of the root node to delete
+     * @throws Exception If the node cannot be deleted
+     */
+    public void deleteRootNode(String nodeName) throws Exception {
+        String zkPath = ZK_PATH_DELIMITER + nodeName;
+        log.info("Attempting to delete root node at path: {}", zkPath);
+
+        if (client.checkExists().forPath(zkPath) != null) {
+            client.delete().deletingChildrenIfNeeded().forPath(zkPath);
+            log.info("Successfully deleted root node: {}", nodeName);
+        } else {
+            log.warn("Root node not found: {}", nodeName);
+            throw new Exception("Root node not found: " + nodeName);
+        }
+    }
+
+    /**
      * Connects to a new ZooKeeper server
      * 
      * @param serverAddress The address of the ZooKeeper server to connect to
@@ -160,7 +179,13 @@ public class ConfigReaderService {
      * @return true if connected, false otherwise
      */
     public boolean isConnected() {
-        return client != null && client.getZookeeperClient().isConnected();
+        try {
+            return client != null && client.getZookeeperClient().isConnected() && 
+                   client.checkExists().forPath("/") != null;
+        } catch (Exception e) {
+            log.error("Error checking connection: {}", e.getMessage());
+            return false;
+        }
     }
 
     /**

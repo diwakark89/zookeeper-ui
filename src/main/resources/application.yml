@@ -1,6 +1,10 @@
 server:
   port: 8085
 
+  spring:
+  application:
+    name: zookeeper-dashboard
+
 zookeeper:
   # Default server to connect to on startup
   server: "192.168.1.238:2181,192.168.1.238:2182,192.168.1.238:2183"

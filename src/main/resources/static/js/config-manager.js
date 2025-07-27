@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const configItemsContainer = document.getElementById('configItems');
     const currentParentSpan = document.getElementById('currentParent');
     const addConfigBtn = document.getElementById('addConfigBtn');
+    const addRootNodeBtn = document.getElementById('add-root-node-btn');
     const connectionStatus = document.getElementById('connection-status');
     const statusIcon = document.getElementById('status-icon');
     const statusMessage = document.getElementById('status-message');
@@ -17,12 +18,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // Modal Elements
     const configModal = new bootstrap.Modal(document.getElementById('configModal'));
     const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    const rootNodeModal = new bootstrap.Modal(document.getElementById('rootNodeModal'));
+    const confirmRootDeleteModal = new bootstrap.Modal(document.getElementById('confirmRootDeleteModal'));
     const configForm = document.getElementById('configForm');
+    const rootNodeForm = document.getElementById('rootNodeForm');
     const configKey = document.getElementById('configKey');
     const configValue = document.getElementById('configValue');
+    const rootNodeName = document.getElementById('rootNodeName');
     const saveConfigBtn = document.getElementById('saveConfigBtn');
+    const saveRootNodeBtn = document.getElementById('saveRootNodeBtn');
     const deleteKeySpan = document.getElementById('deleteKey');
+    const deleteRootNodeSpan = document.getElementById('deleteRootNode');
     const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    const confirmRootDeleteBtn = document.getElementById('confirmRootDeleteBtn');
 
     // Toast Elements
     const successToast = new bootstrap.Toast(document.getElementById('successToast'));
@@ -35,6 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let isEditing = false;
     let currentKeyToEdit = null;
     let currentKeyToDelete = null;
+    let currentRootNodeToDelete = null;
 
     // Initialize
     console.log('Checking connection status first...');
@@ -45,11 +54,76 @@ document.addEventListener('DOMContentLoaded', function() {
         checkConnectionStatus();
     });
 
+    // Event listener for add root node button
+    addRootNodeBtn.addEventListener('click', function() {
+        openAddRootNodeModal();
+    });
+
+    // Event listener for save root node button
+    saveRootNodeBtn.addEventListener('click', function() {
+        if (!rootNodeForm.checkValidity()) {
+            rootNodeForm.reportValidity();
+            return;
+        }
+
+        const nodeName = rootNodeName.value.trim();
+
+        // Create an empty configuration for the new root node
+        const updates = {};
+        updates['_init'] = 'true'; // A dummy value to initialize the node
+
+        fetch(`http://localhost:8085/config?parent=${encodeURIComponent(nodeName)}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updates)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to create root node');
+            }
+            rootNodeModal.hide();
+            loadParentNodes();
+            showSuccess('Root node created successfully');
+        })
+        .catch(error => {
+            showError('Error creating root node: ' + error.message);
+        });
+    });
+
+    // Event listener for confirm root node deletion
+    confirmRootDeleteBtn.addEventListener('click', function() {
+        fetch(`http://localhost:8085/config/root/${encodeURIComponent(currentRootNodeToDelete)}`, {
+            method: 'DELETE'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to delete root node');
+            }
+            confirmRootDeleteModal.hide();
+            loadParentNodes();
+
+            // If we deleted the currently selected parent, clear the UI
+            if (currentParent === currentRootNodeToDelete) {
+                currentParent = null;
+                currentParentSpan.textContent = 'Select a parent node';
+                configItemsContainer.innerHTML = '<p class="text-center text-muted">Select a parent node to view configurations</p>';
+                addConfigBtn.disabled = true;
+            }
+
+            showSuccess('Root node deleted successfully');
+        })
+        .catch(error => {
+            showError('Error deleting root node: ' + error.message);
+        });
+    });
+
     // Load parent nodes
     function loadParentNodes() {
         console.log('Fetching parent nodes from API...');
-        // Use the dynamic API base URL
-        fetch(window.apiBaseUrl + '/config/parent')
+        // Use the direct backend URL
+        fetch('http://localhost:8085/config/parent')
             .then(response => {
                 console.log('Parent nodes API response status:', response.status);
                 if (!response.ok) {
@@ -63,7 +137,29 @@ document.addEventListener('DOMContentLoaded', function() {
                     const item = document.createElement('a');
                     item.href = '#';
                     item.className = 'list-group-item list-group-item-action';
-                    item.textContent = node;
+
+                    // Create a wrapper div for better layout
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'root-node-item';
+
+                    // Add the node name
+                    const nodeName = document.createElement('span');
+                    nodeName.textContent = node;
+                    wrapper.appendChild(nodeName);
+
+                    // Add the delete button
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'btn btn-sm btn-outline-danger root-node-actions';
+                    deleteBtn.innerHTML = '<i class="bi bi-trash"></i>';
+                    deleteBtn.title = 'Delete this root node';
+                    deleteBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        openRootNodeDeleteConfirmation(node);
+                    });
+                    wrapper.appendChild(deleteBtn);
+
+                    item.appendChild(wrapper);
                     item.addEventListener('click', () => selectParentNode(node));
                     parentNodesContainer.appendChild(item);
                 });
@@ -101,7 +197,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
 
-                    fetch(`${window.apiBaseUrl}/config?parent=${encodeURIComponent(parent)}`)
+           fetch(`http://localhost:8085/config?parent=${encodeURIComponent(parent)}`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Failed to load configurations');
@@ -221,6 +317,19 @@ document.addEventListener('DOMContentLoaded', function() {
         confirmModal.show();
     }
 
+    // Open confirmation modal for deleting a root node
+    function openRootNodeDeleteConfirmation(nodeName) {
+        currentRootNodeToDelete = nodeName;
+        deleteRootNodeSpan.textContent = nodeName;
+        confirmRootDeleteModal.show();
+    }
+
+    // Open modal for adding a new root node
+    function openAddRootNodeModal() {
+        rootNodeName.value = '';
+        rootNodeModal.show();
+    }
+
     // Save configuration (add or update)
     saveConfigBtn.addEventListener('click', function() {
         if (!configForm.checkValidity()) {
@@ -233,7 +342,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const updates = {};
         updates[key] = value;
 
-        fetch(`${window.apiBaseUrl}/config?parent=${encodeURIComponent(currentParent)}`, {
+        fetch(`http://localhost:8085/config?parent=${encodeURIComponent(currentParent)}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -255,7 +364,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Delete configuration
     confirmDeleteBtn.addEventListener('click', function() {
-        fetch(`${window.apiBaseUrl}/config/${encodeURIComponent(currentKeyToDelete)}?parent=${encodeURIComponent(currentParent)}`, {
+        fetch(`http://localhost:8085/config/${encodeURIComponent(currentKeyToDelete)}?parent=${encodeURIComponent(currentParent)}`, {
             method: 'DELETE'
         })
         .then(response => {
@@ -283,7 +392,10 @@ document.addEventListener('DOMContentLoaded', function() {
         errorToast.show();
     }
 
-    // Check connection status
+    // Load parent nodes
+    window.loadParentNodes = loadParentNodes;
+
+    // Check connection status (shares some code with server-manager.js)
     function checkConnectionStatus() {
         // Reset UI to loading state
         statusIcon.className = 'spinner-border spinner-border-sm me-2';
@@ -304,7 +416,7 @@ document.addEventListener('DOMContentLoaded', function() {
         currentParent = null;
 
         // Check health endpoint
-        fetch(window.apiBaseUrl + '/health')
+        fetch('http://localhost:8085/health')
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`Health check failed: ${response.status} ${response.statusText}`);
